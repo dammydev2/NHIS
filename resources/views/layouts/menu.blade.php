@@ -1,0 +1,1 @@
+<li><a href="{{ url('/patient') }}">Patient(s)</a></li>
