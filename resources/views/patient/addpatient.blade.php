@@ -83,7 +83,7 @@
 						@endif
 					</div>
 
-					<div class="form-group col-lg-6 has-feedback{{ $errors->has('nhis_id') ? ' has-error' : '' }}">
+					<div class="form-group col-lg-6 has-feedback{{ $errors->has('gender') ? ' has-error' : '' }}">
 						<label>Gender</label>
 						<select name="gender" class="form-control">
 							<option>Male</option>
@@ -129,7 +129,7 @@
 
 					<div class="form-group col-lg-6 has-feedback{{ $errors->has('religion') ? ' has-error' : '' }}">
 						<label>Religion</label>
-						<input type="text" class="form-control" name="religion" value="{{ old('religion') }}" placeholder="Address">
+						<input type="text" class="form-control" name="religion" value="{{ old('religion') }}" placeholder="Religion">
 						<span class="form-control-feedback"></span>
 
 						@if ($errors->has('religion'))
@@ -139,38 +139,14 @@
 						@endif
 					</div>
 
-					<div class="form-group col-lg-6 has-feedback{{ $errors->has('address') ? ' has-error' : '' }}">
-						<label>Address</label>
-						<input type="text" class="form-control" name="address" value="{{ old('address') }}" placeholder="Address">
-						<span class="form-control-feedback"></span>
-
-						@if ($errors->has('address'))
-						<span class="help-block">
-							<strong>{{ $errors->first('address') }}</strong>
-						</span>
-						@endif
-					</div>
-
 					<div class="form-group col-lg-6 has-feedback{{ $errors->has('relationship') ? ' has-error' : '' }}">
 						<label>Relationship</label>
-						<input type="text" class="form-control" name="address" value="{{ old('relationship') }}" placeholder="Relationship">
+						<input type="text" class="form-control" name="relationship" value="{{ old('relationship') }}" placeholder="Relationship">
 						<span class="form-control-feedback"></span>
 
 						@if ($errors->has('relationship'))
 						<span class="help-block">
 							<strong>{{ $errors->first('relationship') }}</strong>
-						</span>
-						@endif
-					</div>
-
-					<div class="form-group col-lg-6 has-feedback{{ $errors->has('phone') ? ' has-error' : '' }}">
-						<label>Phone</label>
-						<input type="text" class="form-control" name="phone" value="{{ old('phone') }}" placeholder="Address">
-						<span class="form-control-feedback"></span>
-
-						@if ($errors->has('phone'))
-						<span class="help-block">
-							<strong>{{ $errors->first('phone') }}</strong>
 						</span>
 						@endif
 					</div>
@@ -189,7 +165,7 @@
 
 					<div class="form-group col-lg-6 has-feedback{{ $errors->has('diagnosis') ? ' has-error' : '' }}">
 						<label>Diagnosis</label>
-						<input type="text" class="form-control" name="address" value="{{ old('diagnosis') }}" placeholder="Diagnosis">
+						<input type="text" class="form-control" name="diagnosis" value="{{ old('diagnosis') }}" placeholder="Diagnosis">
 						<span class="form-control-feedback"></span>
 
 						@if ($errors->has('diagnosis'))
