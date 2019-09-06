@@ -80,5 +80,46 @@ class HomeController extends Controller
         return redirect('patient');
     }
 
+    public function addcare()
+    {
+        return view('patient.addcare');
+    }
+
+    public function checkid(Request $request)
+    {
+        $request->validate([
+            'patient_id' => 'required',
+        ]);
+        $data = Patient::where('patient_id', $request['patient_id'])->get();
+        if ($data->isEmpty()) {
+            Session::flash('error', 'no record found');
+            return redirect('addcare');
+        }
+        return $this->check_number();
+        Session::put('patient_id', $request['patient_id']);
+        return redirect('permits');
+    }
+
+    function check_number(){
+
+        $unique_number = rand();
+        $exists = Addcare::where('rec', $unique_number);
+
+        if ($exists >0){
+            $results = check_number();
+        }
+        else{
+            $results = $unique_number;
+            return $results;
+        }
+
+
+    }
+
+    public function permits()
+    {
+        return view('patient.permits');
+    }
+
 
 }

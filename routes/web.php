@@ -24,7 +24,11 @@ Route::get('/patient', 'HomeController@patient');
 
 Route::get('/addpatient', 'HomeController@addpatient');
 
+Route::get('/addcare', 'HomeController@addcare');
+
 Route::post('/enterpatient', 'HomeController@enterpatient');
+
+Route::post('/checkid', 'HomeController@checkid');
 
 
 
