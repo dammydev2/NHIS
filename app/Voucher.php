@@ -4,14 +4,12 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Addcare extends Model
+class Voucher extends Model
 {
     protected $fillable = [
     	'rec',
-    	'name',
-    	'age',
-    	'added_id',
-    	'date',
     	'today_num',
+    	'voucher',
+    	'today',
     ];
 }

@@ -88,6 +88,18 @@
                 @endif
             </div>
 
+            <div class="form-group">
+                <label>User Type</label>
+                <select class="form-control" name="type">
+                    <option>Select</option>
+                    <option value="1">Front Desk/Registration</option>
+                    <option value="2">Nurse</option>
+                    <option value="3">Health Recorder</option>
+                    <option value="4">Authorizer</option>
+                    <option value="5">Voucher Preparer</option>
+                </select>
+            </div>
+
             <div class="row">
                 <div class="col-xs-8">
                     <div class="checkbox icheck">
