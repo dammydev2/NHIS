@@ -15,6 +15,10 @@ class CreateAddcaresTable extends Migration
     {
         Schema::create('addcares', function (Blueprint $table) {
             $table->bigIncrements('id');
+            $table->string('rec');
+            $table->string('name');
+            $table->string('age');
+            $table->string('added_id');
             $table->timestamps();
         });
     }

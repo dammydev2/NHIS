@@ -26,9 +26,13 @@ Route::get('/addpatient', 'HomeController@addpatient');
 
 Route::get('/addcare', 'HomeController@addcare');
 
+Route::get('/permits', 'HomeController@permits');
+
 Route::post('/enterpatient', 'HomeController@enterpatient');
 
 Route::post('/checkid', 'HomeController@checkid');
+
+Route::post('/enterpermits', 'HomeController@enterpermits');
 
 
 
