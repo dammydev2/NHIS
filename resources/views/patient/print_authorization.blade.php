@@ -9,7 +9,7 @@
 			<div class="panel-body">
 
 				<div class="col-lg-10" style="border: 1px solid #000;">
-					
+					<button onclick="window.print()">Print</button>
 					<table class="table">
 					@foreach($data as $row)
 

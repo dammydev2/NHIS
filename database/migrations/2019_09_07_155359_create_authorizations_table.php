@@ -22,7 +22,7 @@ class CreateAuthorizationsTable extends Migration
             $table->string('hmo');
             $table->string('nhis');
             $table->string('hospital');
-            $table->string('clinic');
+            $table->string('clinic')->nullable();
             $table->string('authorization');
             $table->string('today');
             $table->timestamps();

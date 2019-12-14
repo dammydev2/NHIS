@@ -13,7 +13,7 @@
         }
         else{
             foreach ($info as $key => $row) {
-                $num = $row->today_num;
+                $num = $row->today_num + 1;
             }
         }
         $today = $today;
@@ -33,8 +33,6 @@
 				<form method="post" action="{{ url('/enterpermits') }}">
 					@csrf
 					
-					@for ($i=1; $i <=  Session::get('slot_number'); $i++) 
-
 					<div class="form-group col-lg-4">
 						<label>Slot User(s) name</label>
 						<input type="text" name="name[]" required="" class="form-control" required="">
@@ -46,21 +44,19 @@
 					</div>
 
 					<div class="form-group col-lg-2">
-						<label>Added ID</label>
-						<input type="text" name="added_id[]" value="{{ Session::get('patient_id').'-'.$i }}" readonly="" class="form-control" required="">
+						<label>System number</label>
+						<input type="text" name="added_id[]" value="{{ Session::get('patient_id') }}" class="form-control" required="">
 					</div>
 
 					<div class="form-group col-lg-2">
 						<label>Patient Number</label>
-						<input type="text" class="form-control" readonly="" name="today_num[]" value="{{ $num + $i }}">
+						<input type="text" class="form-control" readonly="" name="today_num[]" value="{{ $num  }}">
 					</div>
 
 					<input type="hidden" name="today" value="{{ $today }}">
 					
 
-					@endfor
-
-					<input type="hidden" name="today" value="{{ $today }}">
+					<!-- <input type="hidden" name="today" value="{{ $today }}"> -->
 
 					<input type="submit" class="btn btn-primary" value="Continue" name="">
 

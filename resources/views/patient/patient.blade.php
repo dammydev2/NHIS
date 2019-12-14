@@ -18,6 +18,7 @@
 					<th colspan="16"><center><a href="{{ url('/addpatient') }}" class="btn btn-primary" ><i class="fa fa-user-plus">Add New patient</i></a></center></th>
 				</tr>
 				<tr>
+					<th></th>
 					<th>Name</th>
 					<th>Patient id</th>
 					<th>HNIS id</th>
@@ -37,6 +38,7 @@
 				</tr>
 				@foreach($data as $row)
 				<tr>
+					<td><a href="{{ url('/slot/'.$row->id) }}">Slot</a></td>
 					<td>{{ $row->name }}</td>
 					<td>{{ $row->patient_id }}</td>
 					<td>{{ $row->nhis_id }}</td>

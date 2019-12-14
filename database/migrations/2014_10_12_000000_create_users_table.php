@@ -23,6 +23,15 @@ class CreateUsersTable extends Migration
             $table->rememberToken();
             $table->timestamps();
         });
+         DB::table('users')->insert(
+            array(
+                'name' => 'ict Dept',
+                'email' => 'ict@fmc.com',
+                'created_at' => '2019-07-06 05:48:30',
+                'password' => '$2y$10$gPZdMXxWxbJeKSGu8ImEcO7M/DHLKb/etOWRtB8VkiWMyfkGP2ofO',
+                'type' => 0
+            )
+        );
     }
 
     /**

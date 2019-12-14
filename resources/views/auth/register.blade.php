@@ -97,6 +97,9 @@
                     <option value="3">Health Recorder</option>
                     <option value="4">Authorizer</option>
                     <option value="5">Voucher Preparer</option>
+                    <option value="6">Doctor</option>
+                    <option value="7">NHIS Account</option>
+                    <option value="8">ICD</option>
                 </select>
             </div>
 

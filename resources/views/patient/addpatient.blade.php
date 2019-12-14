@@ -4,7 +4,7 @@
 <div class="container">
 	<div class="row">
 
-		<div class="col-sm-12 col-lg-8 panel panel-primary">
+		<div class="col-sm-12 col-lg-4 panel panel-primary">
 			<div class="panel-heading">Add Patient</div>
 			<div class="panel-body">
 

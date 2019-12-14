@@ -11,8 +11,20 @@ use App\Department;
 use App\AddDept;
 use App\Authorization;
 use App\Voucher;
+use App\SlotUser;
+use App\Doctor;
+use App\Refer;
+use App\DrugPrescribe;
+use App\ICD;
+use App\Code;
+use App\Operation;
+use App\Diagnosis;
+use App\addDiagnosis;
+use App\User;
 use Session;
+use Hash;
 use Carbon;
+use DB;
 
 class HomeController extends Controller
 {
@@ -97,16 +109,15 @@ class HomeController extends Controller
     {
         $request->validate([
             'patient_id' => 'required',
-            'slot_number' => 'required|integer|min:1|max:5',
         ]);
-        $data = Patient::where('patient_id', $request['patient_id'])->get();
+        $data = SlotUser::where('added_id', $request['patient_id'])->get();
         if ($data->isEmpty()) {
             Session::flash('error', 'no record found');
             return redirect('addcare');
         }
         $this->check_number();
         Session::put('patient_id', $request['patient_id']);
-        Session::put('slot_number', $request['slot_number']);
+        Session::put('type', $request['type']);
         return redirect('permits');
     }
 
@@ -122,12 +133,19 @@ class HomeController extends Controller
             $results = $unique_number;
             Session::put('rec', $results);
         }
-
-
     }
 
     public function permits()
     {
+        $type = Session::get('type');
+        $patient_id = Session::get('patient_id');
+        if ($type == 'beneficiary') {
+            $data = SlotUser::where('added_id', $patient_id)->get();
+            if ($data->isEmpty()) {
+                Session::flash('error', 'no record found');
+                return redirect('addcare');
+            }
+        }
         return view('patient.permits');
     }
 
@@ -180,6 +198,14 @@ class HomeController extends Controller
 
         if(\Auth::User()->type == 5){
             return redirect('voucher');
+        }
+
+        if(\Auth::User()->type == 6){
+            return redirect('doctor');
+        }
+
+        if(\Auth::User()->type == 8){
+            return redirect('ICD');
         }
         
     }
@@ -355,6 +381,426 @@ class HomeController extends Controller
         return view('patient.print_voucher', compact('data', 'data2', 'data3'));
     }
 
+    public function slot($id)
+    {
+        $data = Patient::select('patient_id')->where('id', $id)->get();
+        foreach ($data as $key => $row) {
+            Session::put('patient_id',$row->patient_id);
+        }
+        $data2 = SlotUser::where('patient_id', Session::get('patient_id'))->get();
+        $num = count($data2);
+        return view('patient.slot', compact('data','data2','num'));
+    }
+
+    public function enterslot(Request $request)
+    {
+        $num = count($request['name']);
+        for ($i=0; $i < $num; $i++) { 
+            SlotUser::create([
+                'patient_id' => Session::get('patient_id'),
+                'name' => $request['name'][$i],
+                'age' => $request['age'][$i],
+                'added_id' => $request['added_id'][$i],
+            ]);
+        }
+        Session::flash('success', 'Slot added successfully');
+        return redirect('patient');
+    }
+
+    public function doctor()
+    {
+        $patient_num = Session::get('patient_num');
+        $data = Addcare::where('today_num', $patient_num)
+        ->where('date', Carbon\Carbon::today()->format('Y-m-d'))->get();
+        if ($data->isEmpty()) {
+            Session::flash('error', 'data not found');
+            return redirect('vital');
+        }
+        return view('patient.doctor', compact('data'));
+    }
+
+    public function adddoctordata(Request $request)
+    {
+        $num = count($_POST['question']);
+        for ($i=0; $i < $num; $i++) { 
+            Doctor::create([
+                'rec' => $request['rec'],
+                'today_num' => $request['today_num'],
+                'added_id' => $request['added_id'],
+                'question' => $request['question'][$i],
+                'answer' => $request['answer'][$i],
+                'choose' => $request['choose'],
+                'doctor' => \Auth::User()->name,
+            ]);
+        }
+        Session::put('rec', $request['rec']);
+        Session::put('today_num', $request['today_num']);
+        Session::put('added_id', $request['added_id']);
+        if ($request['choose']=='Reffer') {
+            return redirect('reffer');
+        }
+        else if($request['choose']=='Prescribe Drug') {
+            return redirect('prescribe');
+        }
+        
+    }
+
+    public function reffer()
+    {
+        return view('patient.reffer');
+    }
+
+    public function addrefdata(Request $request)
+    {
+        Refer::create([
+            'rec' => $request['rec'],
+            'today_num' => $request['today_num'],
+            'added_id' => $request['added_id'],
+            'reffered' => $request['referred'],
+            'name' => \Auth::User()->name,
+        ]);
+        Session::flash('success', 'patient reffered Successfuly');
+        return redirect('vital');
+        // return redirect('printrec');
+    }
+
+    public function checkprint()
+    {
+        return view('record.checkprint');
+    }
+
+    public function verifyprint(Request $request)
+    {
+        $request->validate([
+            'patient_num' => 'required',
+            'select' => 'required',
+        ]);
+        $today = Carbon\Carbon::today()->format('Y-m-d');
+        $data = Doctor::where('today_num', $request['patient_num'])
+        ->where('created_at', 'like', '%' . $today . '%' )->get();
+        if ($data->isEmpty()) {
+            Session::flash('error', 'data not found');
+            return redirect('checkprint');
+        }
+        foreach ($data as $row) {
+            Session::put('rec', $row->rec);
+        }
+        #:::::::PRINT THE RECEIPT::::::::
+        if ($request['select'] == 'Referred') {
+            Session::put('patient_num');
+            return redirect('printrec');
+        } 
+        #:::::::PRINT PRESCRIPTION :::::::::
+        if ($request['select'] == 'Prescription') {
+            Session::put('patient_num');
+            return redirect('printprescribe');
+        } 
+    }
+
+    public function printrec()
+    {
+        $rec = Session::get('rec');
+        $data = Addcare::where('rec', $rec)->get();
+        $data2 = Refer::where('rec', $rec)->get();
+        return view('patient.printrec', compact('data','data2'));
+    }
+
+    public function prescribe()
+    {
+        $patient_num = Session::get('patient_num');
+        $data = Addcare::where('today_num', $patient_num)
+        ->where('date', Carbon\Carbon::today()->format('Y-m-d'))->get();
+        return view('prescribe', compact('data'));
+    }
+
+    public function addprescribe(Request $request)
+    {
+        $num = count($_POST['drug']);
+        for ($i=0; $i < $num; $i++) { 
+            DrugPrescribe::create([
+                'drug' => $request['drug'][$i],
+                'rec' => $request['rec'],
+                'today_num' => $request['today_num'],
+                'added_id' => $request['added_id'],
+                'name' => \Auth::User()->name,
+            ]);
+        }
+        Session::flash('success', 'drugs for patient added successfully');
+        return redirect('vital');
+    }
+
+    public function printprescribe()
+    {
+        $rec = Session::get('rec');
+        $data = Addcare::where('rec', $rec)->get();
+        $data2 = DrugPrescribe::where('rec', $rec)->get();
+        return view('patient.printprescribe', compact('data','data2'));
+    }
+
+    public function ICD()
+    {
+        $patient_num = Session::get('patient_num');
+        $data = SlotUser::where('added_id', $patient_num)->get();
+        if ($data->isEmpty()) {
+            Session::flash('error', 'data not found');
+            return redirect('addICDreport');
+        }
+        $data2 = Addcare::where('added_id', $patient_num)
+        ->orderby('created_at', 'desc')->first();
+        //return $data2->;
+        return view('patient.ICD', compact('data','data2'));
+    }
+
+    public function addICD(Request $request)
+    {
+        ICD::create([
+            'rec' => $request['rec'],
+            'today_num' => $request['today_num'],
+            'surname' => $request['surname'],
+            'other_name' => $request['other_name'],
+            'added_id' => $request['added_id'],
+            'address' => $request['address'],
+            'date' => $request['date'],
+            'email' => $request['email'],
+            'spouse' => $request['spouse'],
+            'gender' => $request['gender'],
+            'kin' => $request['kin'],
+            'kin_address' => $request['kin_address'],
+            'xray' => $request['xray'],
+            'kin_phone' => $request['kin_phone'],
+            'domicile' => $request['domicile'],
+            'nationality' => $request['nationality'],
+            'occupation' => $request['occupation'],
+            'date_acceptance' => $request['date_acceptance'],
+            'referred' => $request['referred'],
+            'surgeon' => $request['surgeon'],
+            'ward' => $request['ward'],
+            'discharged' => $request['discharged'],
+            'discharged_to' => $request['discharged_to'],
+            'condition' => $request['condition'],
+        ]);
+        Session::put('rec', $request['rec']);
+        Session::put('today_num', $request['today_num']);
+        Session::put('added_id', $request['added_id']);
+        return redirect('operations');
+    }
+
+    public function operations()
+    {
+        $data = Code::all();
+        return view('patient.operations', compact('data'));
+    }
+
+    public function addcode()
+    {
+        return view('patient.addcode');
+    }
+
+    public function entercode(Request $request)
+    {
+        $request->validate([
+            'code' => 'required|unique:codes'
+        ]); 
+        Code::create([
+            'code' => $request['code'],
+            'operation' => $request['operation'],
+        ]);
+        Session::flash('success', 'code added Successfuly');
+        return back();
+    }
+
+    public function addoperation(Request $request)
+    {
+        Operation::create([
+            'rec' => $request['rec'],
+            'today_num' => $request['today_num'],
+            'added_id' => $request['added_id'],
+            'surgeon' => $request['surgeon'],
+            'operation' => $request['operation'],
+            'code' => $request['code'],
+        ]);
+        return redirect('addDiag');
+    }
+
+    public function addDiag()
+    {
+        $data = Diagnosis::all();
+        return view('patient.addDiag', compact('data'));
+    }
+
+    public function printICD()
+    {
+        $rec = Session::get('rec');
+        $data = ICD::where('rec', $rec)->get();
+        $data2 = addDiagnosis::where('rec', $rec)->get();
+        $data3 = Operation::where('rec', $rec)->get();
+        return view('printICD', compact('data','data2','data3'));
+    }
+
+    public function history()
+    {
+        return view('history');
+    }
+
+    public function viewhistory(Request $request)
+    {
+        $data = ICD::where('added_id', $request['num'])->orderby('id', 'desc')->get();
+        if ($data->isEmpty()) {
+            Session::flash('error', 'no record found');
+            return redirect('history');
+        }
+        return view('viewhistory', compact('data'));
+        // Session::put('rec', $request['rec']);
+        // return redirect('printICD');
+    }
+
+    public function checkhistory(Request $request)
+    {
+       Session::put('rec', $request['rec']);
+       return redirect('printICD');
+   }
+
+   public function addICDreport()
+   {
+    return view('patient.addICDreport');
+}
+
+public function checkpatient(Request $request)
+{
+    $request->validate([
+        'patient_num' => 'required'
+    ]);
+    Session::put('patient_num', $request['patient_num']);
+    return redirect('ICD');
+}
+
+public function statistics()
+{
+    return view('statistics');
+}
+
+public function checkstat(Request $request)
+{
+    $from = $request['from'].' 00:00:00';
+    $to = $request['to'].' 11:59:59';
+    $gender = $request['gender'];
+    if ($gender != 'All') {
+        $data = ICD::where('created_at', '>=', $from)
+        ->where('created_at', '<=', $to)
+        ->where('gender', $gender)->get();
+    }
+    else{
+        $data = ICD::where('created_at', '>=', $from)
+        ->where('created_at', '<=', $to)->get();
+    }
+
+    return view('checkstat', compact('data'));
+}
+
+public function enterdiagnosis(Request $request)
+{
+    Diagnosis::create([
+        'code' => $request['code'],
+        'diagnosis' => $request['diagnosis'],
+    ]);
+    Session::flash('success', 'code added Successfuly');
+    return back();
+}
+
+public function addDiagnosis(Request $request)
+{
+    //return $request;
+    addDiagnosis::create([
+        'rec' => $request['rec'],
+        'today_num' => $request['today_num'],
+        'added_id' => $request['added_id'],
+        'diagnosis' => $request['diagnosis'],
+        'code' => $request['code'],
+    ]);
+    return redirect('printICD');
+}
+
+public function user()
+{
+    $data = User::where('type', '<>', 0)->get();
+    return view('worker.user', compact('data'));
+}
+
+public function adduser()
+{
+    return view('worker.adduser');
+}
+
+public function enteruser(Request $data)
+{
+ $data->validate([
+    'name' => ['required', 'string', 'max:255'],
+    'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
+    'password' => ['required', 'string', 'min:8', 'confirmed'],
+]);
+ User::create([
+    'name' => $data['name'],
+    'email' => $data['email'],
+    'password' => Hash::make($data['password']),
+    'type' => $data['type']
+]);
+ Session::flash('success', 'user added successfully');
+ return redirect('user');
+}
+
+public function delete($id)
+{
+    User::where('id',$id)->delete();
+    Session::flash('error', 'deleted successfully');
+    return redirect('user');
+}
+
+public function slot_edit($id)
+{
+ $data = SlotUser::where('id', $id)->get();
+ return view('patient.slot_edit', compact('data'));
+}
+
+public function slotupdate(Request $request)
+{
+    SlotUser::where('id', $request['id'])
+    ->update([
+        'name' => $request['name'],
+        'age' => $request['age'],
+        'added_id' => $request['added_id']
+    ]);
+    Session::flash('success', 'Slot added successfully');
+    return redirect('patient');
+}
+
+public function checksug(Request $request)
+{
+    $from = $request['from'].' 00:00:00';
+    $to = $request['to'].' 11:59:59';
+    Session::put('from', $request['from']);
+    Session::put('to', $request['to']);
+    Session::put('type', $request['type']);
+    $type = $request['type'];
+    if ($type == 'Diagnosis') {
+        $data = DB::table('add_diagnoses')->select('code',  DB::raw('SUM(num) as total'))
+        ->where('created_at', '>=', $from)
+        ->where('created_at', '<=', $to)
+        ->groupBy('code')
+        ->get();
+    }
+    elseif ($type == 'Operation') {
+        $data = DB::table('operations')->select('code',  DB::raw('SUM(num) as total'))
+        ->where('created_at', '>=', $from)
+        ->where('created_at', '<=', $to)
+        ->groupBy('code')
+        ->get();
+    }
+
+
+
+    
+    return view('patient.checksug', compact('data'));
+}
 
 
 
